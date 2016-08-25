@@ -6,7 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
  * Created by sahil on 8/23/16.
@@ -18,8 +24,11 @@ public class ChromosomeAssembler {
         final Path filePath = Paths.get(args[0]);
 
         final List<String> fragments = readFragmentsFromDataFile(filePath);
+        final String joined = joinFragments(fragments, new NaiveStringOverlapper());
 
+        System.out.println(joined);
 
+       // final String sequenced = sequenceFragments(fragments);
     }
 
     private static List<String> readFragmentsFromDataFile(final Path path)
@@ -34,6 +43,7 @@ public class ChromosomeAssembler {
             while ((line = br.readLine()) != null) {
                 if (line.contains(">")) { //indication that a new fragment is beginning
                     if (fragment.length() > 0) {
+                      //  joinFragments(fragments, fragment.toString(), new NaiveStringOverlapper());
                         fragments.add(fragment.toString());
                         fragment = new StringBuilder();
                     }
@@ -42,83 +52,117 @@ public class ChromosomeAssembler {
                     fragment.append(line);
                 }
             }
+
+            //after last line, add the remaining fragment
+            fragments.add(fragment.toString());
         }
         return fragments;
     }
 
 
-//    public void findOverlap(final String a, final String b) {
-//        final String bigger = a.length() >= b.length() ? a : b;
-//        final String smaller = a.length() >= b.length() ? b : a;
-//
-//        //search occurrence of last character of smaller string in second half of bigger string
-//        final char lastCharacter = smaller.charAt(smaller.length() - 1);
-//        final String biggerLastHalf = bigger.substring(bigger.length() / 2 - 1);
-//
-//        int indexOfChar = bigger.charAt(lastCharacter);
-//        while (indexOfChar != -1) {
-//
-//        }
-//
-//
-//        final String = bigger.indexOf(smaller.charAt(smaller.length() - 1));
-//        wh
-//
-//    }
+    private static String joinFragments(final List<String> fragments, final StringOverlapper overlapper) {
 
-    public static void findOverlapIndex(final String a, final String b) {
-        final String haystack = a.length() >= b.length() ? a : b;
-        final String needle = a.length() >= b.length() ? b : a;
+        if (fragments.size() == 1) {
+            return fragments.get(0);
+        }
 
-        final int[] lps = calculateLps(needle);
+        final List<String> joinedFragments = new ArrayList<>();
 
-        int j = 0;
-        int i = 0;
-        while (i < haystack.length()) {
-            if (needle.charAt(j) == haystack.charAt(i)) {
-                j++;
-                i++;
+
+        final Set<Integer> indexesAlreadyJoined = new HashSet<>();
+
+        System.out.println(fragments.size());
+        for (int i = 0; i < fragments.size(); i++) {
+
+            if (indexesAlreadyJoined.contains(i)) {
+                continue;
             }
-            if (j == needle.length()) {
-                System.out.println("Found pattern at index " + (i-j));
-                j = lps[j-1];
-            }
-            else if (i < haystack.length() && needle.charAt(j) != haystack.charAt(i)) {
-                //by not advancing i, keep looping until we find a prefix that matches
-                //or j == 0
-                if (j != 0) {
-                    j = lps[j - 1];
-                } //if j == 0, advance i because the lps will be 0, meaning no matching prefix
-                else {
-                    i++;
+
+            for (int j = 0; j < fragments.size(); j++) {
+
+                //don't join with self
+                if (j == i || indexesAlreadyJoined.contains(j)) {
+                    continue;
+                }
+
+                final Optional<String> overlapped = overlapper.computeOverlap(fragments.get(i), fragments.get(j));
+
+                if (overlapped.isPresent()) {
+                    joinedFragments.add(overlapped.get());
+                    indexesAlreadyJoined.add(i);
+                    indexesAlreadyJoined.add(j);
                 }
             }
         }
+
+
+        for (int i = 0; i < fragments.size(); i++) {
+            if (!indexesAlreadyJoined.contains(i)) {
+                joinedFragments.add(fragments.get(i));
+            }
+        }
+
+
+        return joinFragments(joinedFragments, overlapper);
     }
 
 
-    public static int[] calculateLps(final String pattern) {
-        int[] lps = new int[pattern.length()];
-        lps[0] = 0;
 
-        int j = 0;
-        int i = 1;
-        while (i < pattern.length()) {
-            if (pattern.charAt(j) == pattern.charAt(i)) {
-                lps[i] = ++j;
-                i++;
+
+    interface StringOverlapper {
+        /**
+         * Attempts to compute an overlap between String a and String b. An
+         * overlap is defined as more than half of String A and String B are equal
+         * such that the start of String A overlaps with the end of String B or
+         * the end of String B overlaps with the start of String A.
+         * @param a first string
+         * @param b second string
+         * @return Optional that contains the overlap or is empty if there is no computable overlap
+         */
+        Optional<String> computeOverlap(String a, String b);
+    }
+
+    static class NaiveStringOverlapper
+        implements StringOverlapper {
+
+        @Override
+        public Optional<String> computeOverlap(String a, String b) {
+
+            final String bigger = a.length() >= b.length() ? a : b;
+            final String smaller = a.length() >= b.length() ? b : a;
+
+            //check overlap end of smaller string into start of bigger string
+            int endSmallerToStartBiggerOverlapIndex = -1;
+            for (int i = 0; i < smaller.length(); i++) {
+                if (i >= bigger.length() / 2 && i >= smaller.length() / 2) {
+
+                    if (bigger.substring(0, i + 1).equals(smaller.substring(smaller.length() - 1 - i, smaller.length()))) {
+                        endSmallerToStartBiggerOverlapIndex = Math.max(endSmallerToStartBiggerOverlapIndex, i);
+                    }
+                }
+            }
+
+            int endBiggerToStartSmallerOverlapIndex = -1;
+            //check overlap end of smaller string into start of bigger string
+            for (int i = 0; i < smaller.length(); i++) {
+                if (i >= bigger.length() / 2 && i >= smaller.length() / 2) {
+
+                    if (bigger.substring(bigger.length() - 1 - i, bigger.length()).equals(smaller.substring(0, i + 1))) {
+                        endBiggerToStartSmallerOverlapIndex = Math.max(endBiggerToStartSmallerOverlapIndex, i);
+                    }
+                }
+            }
+
+            if (endSmallerToStartBiggerOverlapIndex == -1 && endBiggerToStartSmallerOverlapIndex == -1) {
+                return Optional.empty();
+            }
+            // theoretically these should never be equal because the fragments are guaranteed to be unique in their order
+            if (endSmallerToStartBiggerOverlapIndex > endBiggerToStartSmallerOverlapIndex) {
+                return Optional.of(smaller.substring(0, smaller.length() - endSmallerToStartBiggerOverlapIndex - 1).concat(bigger));
             }
             else {
-                if (j > 0) {
-                    j = lps[j - 1];
-                }
-                else {
-                    lps[i] = 0;
-                    i++;
-                }
+                return Optional.of(bigger.substring(0, bigger.length() - endBiggerToStartSmallerOverlapIndex - 1).concat(smaller));
             }
         }
-
-        return lps;
     }
 }

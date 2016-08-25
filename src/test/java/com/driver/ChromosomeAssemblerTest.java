@@ -2,7 +2,8 @@ package com.driver;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -10,39 +11,45 @@ import static org.junit.Assert.assertEquals;
  */
 public class ChromosomeAssemblerTest {
 
-    @Test
-    public void testLps() {
-        final int[] expected = {0, 1, 0, 1, 2, 3, 4, 5, 2};
-        final int[] lps = ChromosomeAssembler.calculateLps("aabaabaaa");
-
-        assertArrayEquals(expected, lps);
-    }
+    private static final ChromosomeAssembler.StringOverlapper overlapper = new ChromosomeAssembler.NaiveStringOverlapper();
 
     @Test
-    public void testOverlap() {
-        final int[] expected = {0, 1, 0, 1, 2, 3, 4, 5, 2};
-        final int[] lps = ChromosomeAssembler.calculateLps("aabaabaaa");
-        final String a = "ABABDABACDABABCABAB";
-        final String b = "ABABCABAB";
-
-        ChromosomeAssembler.findOverlapIndex(a, b);
-    }
-
-    @Test
-    public void testCannotCombine() {
-        final int[] expected = {0, 1, 0, 1, 2, 3, 4, 5, 2};
+    public void testCannotCombineBecauseNotMoreThanHalfOverlapFromBack() {
         final String a = "ATTAGACCTG";
         final String b = "CCTGCCGGAA";
 
-        ChromosomeAssembler.findOverlapIndex(a, b);
+        assertEquals(Optional.empty(), overlapper.computeOverlap(a, b));
+        assertEquals(Optional.empty(), overlapper.computeOverlap(b, a));
+
     }
 
     @Test
-    public void testCombineStartOfAAndEndOfB() {
-        final int[] expected = {0, 1, 0, 1, 2, 3, 4, 5, 2};
-        final String a = "AGACCTGCCG";
-        final String b = "GTGTAGACCT";
+    public void testCannotCombineBecauseNotMoreThanHalfOverlapFromFront() {
+        final String a = "CCTGGAATAG";
+        final String b = "TTGGTACCTG";
 
-        ChromosomeAssembler.findOverlapIndex(a, b);
+        assertEquals(Optional.empty(), overlapper.computeOverlap(a, b));
+        assertEquals(Optional.empty(), overlapper.computeOverlap(b, a));
+
+    }
+
+    @Test
+    public void testCombineEndOfBiggerStringWithStartOfSmallerString() {
+        final String a = "ATTAGAC";
+        final String b = "CTATTA";
+
+        assertEquals("CTATTAGAC", overlapper.computeOverlap(a, b).get());
+        assertEquals("CTATTAGAC", overlapper.computeOverlap(b, a).get());
+
+    }
+
+    @Test
+    public void testCombineStartOfBiggerStringWithEndOfSmallerString() {
+        final String a = "ATTAGAC";
+        final String b = "AGACT";
+
+        assertEquals("ATTAGACT", overlapper.computeOverlap(a, b).get());
+        assertEquals("ATTAGACT", overlapper.computeOverlap(b, a).get());
+
     }
 }
