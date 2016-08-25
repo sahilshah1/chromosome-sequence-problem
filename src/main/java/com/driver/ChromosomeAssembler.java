@@ -7,12 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 /**
  * Created by sahil on 8/23/16.
@@ -62,16 +59,15 @@ public class ChromosomeAssembler {
 
     private static String joinFragments(final List<String> fragments, final StringOverlapper overlapper) {
 
+        System.out.println(fragments.size());
         if (fragments.size() == 1) {
             return fragments.get(0);
         }
 
         final List<String> joinedFragments = new ArrayList<>();
-
-
         final Set<Integer> indexesAlreadyJoined = new HashSet<>();
 
-        System.out.println(fragments.size());
+        //try to overlap every string with every other string O(n^2)
         for (int i = 0; i < fragments.size(); i++) {
 
             if (indexesAlreadyJoined.contains(i)) {
@@ -79,29 +75,27 @@ public class ChromosomeAssembler {
             }
 
             for (int j = 0; j < fragments.size(); j++) {
-
                 //don't join with self
                 if (j == i || indexesAlreadyJoined.contains(j)) {
                     continue;
                 }
 
                 final Optional<String> overlapped = overlapper.computeOverlap(fragments.get(i), fragments.get(j));
-
                 if (overlapped.isPresent()) {
                     joinedFragments.add(overlapped.get());
                     indexesAlreadyJoined.add(i);
                     indexesAlreadyJoined.add(j);
+                    break; //found unique pair, break out
                 }
             }
         }
 
-
+        //add all the unpaired fragments leftover
         for (int i = 0; i < fragments.size(); i++) {
             if (!indexesAlreadyJoined.contains(i)) {
                 joinedFragments.add(fragments.get(i));
             }
         }
-
 
         return joinFragments(joinedFragments, overlapper);
     }
