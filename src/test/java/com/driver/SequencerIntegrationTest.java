@@ -1,6 +1,5 @@
 package com.driver;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -22,14 +21,14 @@ public class SequencerIntegrationTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                    { new ChromosomeAssembler.NaiveSequencer(), new ChromosomeAssembler.NaiveOverlapAlgorithm() }
+                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.NaiveOverlapAlgorithm() }
                 });
     }
 
-    private ChromosomeAssembler.Sequencer sequencer;
-    private ChromosomeAssembler.StringOverlapAlgorithm overlapper;
+    private ChromosomeSequencer.Sequencer sequencer;
+    private ChromosomeSequencer.StringOverlapAlgorithm overlapper;
 
-    public SequencerIntegrationTest(ChromosomeAssembler.Sequencer sequencer, ChromosomeAssembler.StringOverlapAlgorithm overlapper) {
+    public SequencerIntegrationTest(ChromosomeSequencer.Sequencer sequencer, ChromosomeSequencer.StringOverlapAlgorithm overlapper) {
         this.sequencer = sequencer;
         this.overlapper = overlapper;
     }
@@ -58,7 +57,7 @@ public class SequencerIntegrationTest {
     private static List<String> readFragmentsFromResource(final String resourceName)
             throws IOException {
         final String path = SequencerIntegrationTest.class.getResource(resourceName).getPath();
-        return ChromosomeAssembler.readFragmentsFromDataFile(Paths.get(path));
+        return ChromosomeSequencer.readFragmentsFromDataFile(Paths.get(path));
 
     }
 }

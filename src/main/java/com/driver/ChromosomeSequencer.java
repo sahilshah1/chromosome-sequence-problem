@@ -6,13 +6,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by sahil on 8/23/16.
  */
-public class ChromosomeAssembler {
+public class ChromosomeSequencer {
 
     public static void main(final String[] args)
             throws IOException {
@@ -45,11 +48,26 @@ public class ChromosomeAssembler {
         return fragments;
     }
 
+    interface Sequencer {
+        /**
+         * Sequences a list of fragments and returns the sequenced fragments.
+         * @param fragments list of unordered fragments that overlap
+         * @param overlapper algorithm to detect overlap of 2 strings
+         * @return ordered list of fragments that overlap
+         */
+        String sequence(List<String> fragments, final StringOverlapAlgorithm overlapper);
+    }
+
+    /**
+     * Naive sequencer that figures out the unique overlap between each fragment
+     * by trying each fragment against every other fragment. O(n^2 * time of overlap algorithm)
+     */
     public static class NaiveSequencer
         implements Sequencer {
 
-        public String sequence(final List<String> fragments, final StringOverlapAlgorithm overlapper) {
-            final int fragmentsToSequence = fragments.size();
+        public String sequence(final List<String> fragments, final StringOverlapAlgorithm algorithm) {
+            //save some ms of perf by not removing from original fragments list and recording sequenced indexes
+            final Set<Integer> sequencedIndexes = new HashSet<>();
 
             //find the beginning of the sequence. the one string for which no other string has an overlapping suffix
             String startingFragment = "";
@@ -60,14 +78,14 @@ public class ChromosomeAssembler {
                     if (i == j) {
                         continue;
                     }
-                    if (overlapper.computeOverlapIndex(fragments.get(j), prefixString) != -1) {
+                    if (algorithm.computeOverlapIndex(fragments.get(j), prefixString) != -1) {
                         foundOverlappingSuffix = true;
                         break;
                     }
                 }
                 if (!foundOverlappingSuffix) {
                     startingFragment = prefixString;
-                    fragments.remove(i);
+                    sequencedIndexes.add(i);
                     break;
                 }
             }
@@ -75,25 +93,23 @@ public class ChromosomeAssembler {
             //find the matching prefix for each suffix
             final List<SequencedFragment> sequencedFragments = new ArrayList<>(fragments.size());
             String currentSuffix = startingFragment;
-            while (fragmentsToSequence != sequencedFragments.size()) {
 
-                //end of the fragments
-                if (fragments.size() == 0) {
-                    sequencedFragments.add(new SequencedFragment(currentSuffix, -1));
-                }
-
-                //when searching for a suffix
+            while (sequencedIndexes.size() != fragments.size()) {
                 for (int i = 0; i < fragments.size(); i++) {
-                    final int overlap = overlapper.computeOverlapIndex(currentSuffix, fragments.get(i));
+                    if (sequencedIndexes.contains(i)) {
+                        continue;
+                    }
+
+                    final int overlap = algorithm.computeOverlapIndex(currentSuffix, fragments.get(i));
                     if (overlap != -1) {
                         sequencedFragments.add(new SequencedFragment(currentSuffix, overlap));
                         currentSuffix = fragments.get(i);
-                        fragments.remove(i);
+                        sequencedIndexes.add(i);
                         break;
                     }
                 }
             }
-
+            sequencedFragments.add(new SequencedFragment(currentSuffix, -1));
 
             return combineSequencedFragments(sequencedFragments);
         }
@@ -111,7 +127,11 @@ public class ChromosomeAssembler {
         }
     }
 
-    public static class SequencedFragment {
+    /**
+     * POJO that describes how much of the companion prefix string (not included in POJO)
+     * overlaps with the fragment.
+     */
+    private static class SequencedFragment {
         public final String fragment;
         public final int overlapIndexOfFollowingPrefix;
 
@@ -127,17 +147,6 @@ public class ChromosomeAssembler {
     }
 
 
-    interface Sequencer {
-        /**
-         * Sequences a list of fragments and returns the sequenced fragments.
-         * @param fragments list of unordered fragments that overlap
-         * @param overlapper algorithm to detect overlap of 2 strings
-         * @return ordered list of fragments that overlap
-         */
-        String sequence(List<String> fragments, final StringOverlapAlgorithm overlapper);
-    }
-
-
     interface StringOverlapAlgorithm {
         /**
          * Attempts to compute an overlap between String a and String b. An
@@ -150,6 +159,10 @@ public class ChromosomeAssembler {
         int computeOverlapIndex(String suffixString, String prefixString);
     }
 
+    /**
+     * Naive algorithm that slides the suffix string across the beginning of the prefix
+     * String, and does backtracking for every character. O(mn)
+     */
     static class NaiveOverlapAlgorithm
         implements StringOverlapAlgorithm {
 

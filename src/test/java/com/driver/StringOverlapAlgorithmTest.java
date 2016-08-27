@@ -18,13 +18,13 @@ public class StringOverlapAlgorithmTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                { new ChromosomeAssembler.NaiveOverlapAlgorithm() }
+                { new ChromosomeSequencer.NaiveOverlapAlgorithm() }
         });
     }
 
-    private ChromosomeAssembler.StringOverlapAlgorithm algorithm;
+    private ChromosomeSequencer.StringOverlapAlgorithm algorithm;
 
-    public StringOverlapAlgorithmTest(final ChromosomeAssembler.StringOverlapAlgorithm algorithm) {
+    public StringOverlapAlgorithmTest(final ChromosomeSequencer.StringOverlapAlgorithm algorithm) {
         this.algorithm = algorithm;
     }
 
