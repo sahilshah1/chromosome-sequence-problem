@@ -21,11 +21,11 @@ public class ChromosomeSequencer {
             throws IOException {
         final Path filePath = Paths.get(args[0]);
         final List<String> fragments = readFragmentsFromDataFile(filePath);
-        final String sequenced = new NaiveSequencer().sequence(fragments, new NaiveOverlapAlgorithm());
+        final String sequenced = new NaiveSequencer().sequence(fragments, new KMPAlgorithm());
         System.out.println(sequenced);
     }
 
-    public static List<String> readFragmentsFromDataFile(final Path path)
+    static List<String> readFragmentsFromDataFile(final Path path)
             throws IOException {
         final List<String> fragments = new ArrayList<>();
         try (final BufferedReader br = Files.newBufferedReader(path)) {
@@ -62,7 +62,7 @@ public class ChromosomeSequencer {
      * Naive sequencer that figures out the unique overlap between each fragment
      * by trying each fragment against every other fragment. O(n^2 * time of overlap algorithm)
      */
-    public static class NaiveSequencer
+    static class NaiveSequencer
         implements Sequencer {
 
         public String sequence(final List<String> fragments, final StringOverlapAlgorithm algorithm) {
@@ -132,10 +132,10 @@ public class ChromosomeSequencer {
      * overlaps with the fragment.
      */
     private static class SequencedFragment {
-        public final String fragment;
-        public final int overlapIndexOfFollowingPrefix;
+        final String fragment;
+        final int overlapIndexOfFollowingPrefix;
 
-        public SequencedFragment(final String fragment, final int overlapIndexOfFollowingPrefix) {
+        SequencedFragment(final String fragment, final int overlapIndexOfFollowingPrefix) {
             this.fragment = fragment;
             this.overlapIndexOfFollowingPrefix = overlapIndexOfFollowingPrefix;
         }
@@ -179,6 +179,72 @@ public class ChromosomeSequencer {
             final boolean isMatchingSuffixLongEnough = overlapIndex + 1 >= suffixString.length() / 2 + 1;
             final boolean isMatchingPrefixLongEnough = overlapIndex + 1 >= prefixString.length() / 2 + 1;
             return isMatchingSuffixLongEnough && isMatchingPrefixLongEnough ? overlapIndex : -1;
+        }
+    }
+
+
+    /**
+     * Uses Knuth-Morris-Pratt to detect the string overlap. O(m + n)
+     */
+    static class KMPAlgorithm
+            implements StringOverlapAlgorithm {
+
+        //performance optimization: if we've already computed the LPS for a String,
+        //retrieve it instead of re-computing it
+        private static Map<String, int[]> STRING_TO_LPS = new HashMap<>();
+
+        @Override
+        public int computeOverlapIndex(final String text, final String pattern) {
+            int[] lsp = computeLps(pattern);
+
+            int overlapIndex = -1;
+            int j = 0;  // number of chars matched
+            for (int i = 0; i < text.length(); i++) {
+                // fall back until 0 or the position of the end of the last matching prefix
+                while (j > 0 && text.charAt(i) != pattern.charAt(j)) {
+                    j = lsp[j - 1];
+                }
+                if (text.charAt(i) == pattern.charAt(j)) {
+                    j++; // char matched, increment position
+
+                    //matched portion must be greater than half of each string
+                    if (j > text.length() / 2 && j > pattern.length() / 2) {
+                        overlapIndex = Math.max(j - 1, overlapIndex);
+                    }
+                }
+            }
+
+            return overlapIndex;
+        }
+
+        private static int[] computeLps(final String pattern) {
+            if (STRING_TO_LPS.containsKey(pattern)) {
+                return STRING_TO_LPS.get(pattern);
+            }
+
+            final int[] lsp = new int[pattern.length()];
+            lsp[0] = 0;
+            for (int i = 1; i < pattern.length(); i++) {
+                final char currentLetter = pattern.charAt(i);
+
+                int j = lsp[i - 1];
+
+                //if there is a mismatch, fall back until it sees the same letter again
+                //or 0 if it doesn't exist.
+                while (j > 0 && currentLetter != pattern.charAt(j)) {
+                    j = lsp[j - 1];
+                }
+
+                //increment the number of characters seen thus far
+                if (currentLetter == pattern.charAt(j)) {
+                    j++;
+                }
+
+                lsp[i] = j;
+            }
+
+            STRING_TO_LPS.put(pattern, lsp);
+            return lsp;
         }
     }
 }

@@ -5,6 +5,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,7 +23,8 @@ public class SequencerIntegrationTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.NaiveOverlapAlgorithm() }
+                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.NaiveOverlapAlgorithm() },
+                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.KMPAlgorithm() }
                 });
     }
 
@@ -40,7 +43,9 @@ public class SequencerIntegrationTest {
 
         final String sequenced = this.sequencer.sequence(fragments, this.overlapper);
 
-        assertEquals("ATTAGACCTGCCGGAATAC", sequenced);
+        final String expectedPath = SequencerIntegrationTest.class.getResource("coding_challenge_data_set_expected.txt").getPath();
+        String expected = new String(Files.readAllBytes(Paths.get(expectedPath)), Charset.defaultCharset());
+        assertEquals(expected, sequenced);
 
     }
 

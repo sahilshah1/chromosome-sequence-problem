@@ -18,7 +18,8 @@ public class StringOverlapAlgorithmTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                { new ChromosomeSequencer.NaiveOverlapAlgorithm() }
+                { new ChromosomeSequencer.NaiveOverlapAlgorithm() },
+                { new ChromosomeSequencer.KMPAlgorithm() }
         });
     }
 
