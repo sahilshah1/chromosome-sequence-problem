@@ -54,7 +54,8 @@ return combineSequenceAccordingToOverlaps(sequenced)
 ```
 
 There are 2 expensive operations here:
-- the time to find each sequence, which is `O(n^2)`. There maybe a more advanced solution to decrease this.
+- the time to find each sequence, which is `O(n^2)`. There maybe a more advanced solution
+to improve the asymptotic performance, but for now, I just used threads to divide up the work.
 - the time it takes to compare each string for overlaps.
 the naive way to do this is `O(m^2)`, but there are faster algorithms
 such as `O(m + n)`.
@@ -81,4 +82,8 @@ equivalent in length in this problem).
 and returns the sequenced and combined fragment. There is only a naive `O(n^2)` implementation,
 for the reasons described above.
 
-Unit and integration tests are available as well to verify correctness and eyeball performance.
+The ParallelSequencer divides the work up, causing a big improvement on performance.
+As data sets get bigger or smaller, the number of threads should be throttled accordingly,
+but I've used fixed thread numbers for now.
+
+Unit and integration tests can be run to verify correctness and eyeball performance.
