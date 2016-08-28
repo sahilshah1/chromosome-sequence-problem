@@ -23,17 +23,17 @@ public class SequencerIntegrationTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.NaiveOverlapAlgorithm() },
-                    { new ChromosomeSequencer.NaiveSequencer(), new ChromosomeSequencer.KMPAlgorithm() }
+                    { new ChromosomeSequencer.NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
+                    { new ChromosomeSequencer.NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() }
                 });
     }
 
     private ChromosomeSequencer.Sequencer sequencer;
-    private ChromosomeSequencer.StringOverlapAlgorithm overlapper;
+    private StringOverlapAlgorithm algorithm;
 
-    public SequencerIntegrationTest(ChromosomeSequencer.Sequencer sequencer, ChromosomeSequencer.StringOverlapAlgorithm overlapper) {
+    public SequencerIntegrationTest(ChromosomeSequencer.Sequencer sequencer, StringOverlapAlgorithm algorithm) {
         this.sequencer = sequencer;
-        this.overlapper = overlapper;
+        this.algorithm = algorithm;
     }
 
     @Test
@@ -41,7 +41,7 @@ public class SequencerIntegrationTest {
             throws IOException {
         final List<String> fragments = readFragmentsFromResource("coding_challenge_data_set.txt");
 
-        final String sequenced = this.sequencer.sequence(fragments, this.overlapper);
+        final String sequenced = this.sequencer.sequence(fragments, this.algorithm);
 
         final String expectedPath = SequencerIntegrationTest.class.getResource("coding_challenge_data_set_expected.txt").getPath();
         String expected = new String(Files.readAllBytes(Paths.get(expectedPath)), Charset.defaultCharset());
@@ -54,7 +54,7 @@ public class SequencerIntegrationTest {
             throws IOException {
         final List<String> fragments = readFragmentsFromResource("test_data_set.txt");
 
-        final String sequenced = this.sequencer.sequence(fragments, this.overlapper);
+        final String sequenced = this.sequencer.sequence(fragments, this.algorithm);
 
         assertEquals("ATTAGACCTGCCGGAATAC", sequenced);
     }

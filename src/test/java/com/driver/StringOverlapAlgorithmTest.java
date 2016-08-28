@@ -18,14 +18,14 @@ public class StringOverlapAlgorithmTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                { new ChromosomeSequencer.NaiveOverlapAlgorithm() },
-                { new ChromosomeSequencer.KMPAlgorithm() }
+                { new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
+                { new StringOverlapAlgorithm.KMPAlgorithm() }
         });
     }
 
-    private ChromosomeSequencer.StringOverlapAlgorithm algorithm;
+    private StringOverlapAlgorithm algorithm;
 
-    public StringOverlapAlgorithmTest(final ChromosomeSequencer.StringOverlapAlgorithm algorithm) {
+    public StringOverlapAlgorithmTest(final StringOverlapAlgorithm algorithm) {
         this.algorithm = algorithm;
     }
 
