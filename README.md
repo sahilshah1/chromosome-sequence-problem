@@ -52,17 +52,19 @@ repeat until all n fragments have been added to sequence:(O(n^2 * time to match 
 
 return combineSequenceAccordingToOverlaps(sequenced)
 ```
+## Space-Time Complexity
 
 There are 2 expensive operations here:
 - the time to find each sequence, which is `O(n^2)`. There maybe a more advanced solution to decrease this.
 - the time it takes to compare each string for overlaps.
 the naive way to do this is `O(m^2)`, but there are faster algorithms
-such as `O(m + n)`.
+such as `O(m + p)`.
 
 Since `m` is likely to be a lot bigger than `n` (the problem spec says `m` is ~1000 and `n` is ~50),
 I spent more time optimizing the time to compare each string.
 
-The submitted solution in the main method is `O(m * n^2)`.
+The submitted solution in the main method is `O(m * n^2)`. The space cost is `O(n)` for the sequenced fragments,
+and `O(n*m)` for the LSP efficient KMP string overlap impl. So in total `O(n + n*m)`.
 
 ## Code Structure
 
@@ -82,3 +84,6 @@ and returns the sequenced and combined fragment. There is only a naive `O(n^2)` 
 for the reasons described above.
 
 Unit and integration tests are available as well to verify correctness and eyeball performance.
+
+There are some obvious places to improve performance on the machine, but out of interest of time, I
+haven't explored many of them. The ones I have are commented in the code.
