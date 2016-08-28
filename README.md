@@ -65,7 +65,8 @@ Since `m` is likely to be a lot bigger than `n` (the problem spec says `m` is ~1
 I spent more time optimizing the time to compare each string.
 
 The submitted solution in the main method is `O(m * n^2)`. The space cost is `O(n)` for the sequenced fragments,
-and `O(n*m)` for the LSP efficient KMP string overlap impl. So in total `O(n + n*m)`.
+and `O(n*m)` for the LSP efficient KMP string overlap impl, and `O(n^2 + n)` for the parallel implementation. 
+So in total `O(n + n*m + n^2)`.
 
 ## Code Structure
 
