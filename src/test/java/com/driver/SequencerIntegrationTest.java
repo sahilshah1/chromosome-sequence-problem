@@ -23,15 +23,15 @@ public class SequencerIntegrationTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                    { new ChromosomeSequencer.NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
-                    { new ChromosomeSequencer.NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() }
+                    { new NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
+                    { new NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() }
                 });
     }
 
-    private ChromosomeSequencer.Sequencer sequencer;
+    private Sequencer sequencer;
     private StringOverlapAlgorithm algorithm;
 
-    public SequencerIntegrationTest(ChromosomeSequencer.Sequencer sequencer, StringOverlapAlgorithm algorithm) {
+    public SequencerIntegrationTest(Sequencer sequencer, StringOverlapAlgorithm algorithm) {
         this.sequencer = sequencer;
         this.algorithm = algorithm;
     }
@@ -62,7 +62,7 @@ public class SequencerIntegrationTest {
     private static List<String> readFragmentsFromResource(final String resourceName)
             throws IOException {
         final String path = SequencerIntegrationTest.class.getResource(resourceName).getPath();
-        return ChromosomeSequencer.readFragmentsFromDataFile(Paths.get(path));
+        return Driver.readFragmentsFromDataFile(Paths.get(path));
 
     }
 }
