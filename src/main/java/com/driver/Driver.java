@@ -17,7 +17,7 @@ public class Driver {
             throws IOException {
         final Path filePath = Paths.get(args[0]);
         final List<String> fragments = readFragmentsFromDataFile(filePath);
-        final String sequenced = new NaiveSequencer().sequence(fragments, new StringOverlapAlgorithm.KMPAlgorithm());
+        final String sequenced = new ParallelSequencer(2).sequence(fragments, new StringOverlapAlgorithm.KMPAlgorithm());
         System.out.println(sequenced);
     }
 

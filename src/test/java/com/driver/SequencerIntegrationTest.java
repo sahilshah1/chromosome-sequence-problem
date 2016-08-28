@@ -24,7 +24,10 @@ public class SequencerIntegrationTest {
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                     { new NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
-                    { new NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() }
+                    { new NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() },
+                    { new ParallelSequencer(2), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
+                    { new ParallelSequencer(2), new StringOverlapAlgorithm.KMPAlgorithm() },
+                    { new ParallelSequencer(4), new StringOverlapAlgorithm.KMPAlgorithm() }
                 });
     }
 

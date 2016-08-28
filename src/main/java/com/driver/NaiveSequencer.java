@@ -58,37 +58,6 @@ public class NaiveSequencer
         }
         sequencedFragments.add(new SequencedFragment(currentSuffix, -1));
 
-        return combineSequencedFragments(sequencedFragments);
-    }
-
-    private static String combineSequencedFragments(final List<SequencedFragment> sequencedFragments) {
-        final StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append(sequencedFragments.get(0).fragment);
-        for (int i = 0; i < sequencedFragments.size() - 1; i++) {
-            final int overlap = sequencedFragments.get(i).overlapIndexOfFollowingPrefix;
-            stringBuilder.append(sequencedFragments.get(i + 1).fragment.substring(overlap + 1));
-        }
-
-        return stringBuilder.toString();
-    }
-
-    /**
-     * POJO that describes how much of the companion prefix string (not included in POJO)
-     * overlaps with the fragment.
-     */
-    private static class SequencedFragment {
-        final String fragment;
-        final int overlapIndexOfFollowingPrefix;
-
-        SequencedFragment(final String fragment, final int overlapIndexOfFollowingPrefix) {
-            this.fragment = fragment;
-            this.overlapIndexOfFollowingPrefix = overlapIndexOfFollowingPrefix;
-        }
-
-        @Override
-        public String toString() {
-            return this.fragment + "(" + this.overlapIndexOfFollowingPrefix + ")";
-        }
+        return SequencedFragment.combineSequencedFragments(sequencedFragments);
     }
 }
