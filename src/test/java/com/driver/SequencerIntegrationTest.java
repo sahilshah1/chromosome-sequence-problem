@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class SequencerIntegrationTest {
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{0} with {1}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                     { new NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },

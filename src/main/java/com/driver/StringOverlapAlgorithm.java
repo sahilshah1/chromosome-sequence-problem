@@ -38,6 +38,11 @@ interface StringOverlapAlgorithm {
             final boolean isMatchingPrefixLongEnough = overlapIndex + 1 >= prefixString.length() / 2 + 1;
             return isMatchingSuffixLongEnough && isMatchingPrefixLongEnough ? overlapIndex : -1;
         }
+
+        @Override
+        public String toString() {
+            return NaiveOverlapAlgorithm.class.getSimpleName();
+        }
     }
 
     /**
@@ -102,6 +107,11 @@ interface StringOverlapAlgorithm {
 
             STRING_TO_LPS.put(pattern, lsp);
             return lsp;
+        }
+
+        @Override
+        public String toString() {
+            return KMPAlgorithm.class.getSimpleName();
         }
     }
 }

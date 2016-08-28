@@ -60,4 +60,9 @@ public class NaiveSequencer
 
         return SequencedFragment.combineSequencedFragments(sequencedFragments);
     }
+
+    @Override
+    public String toString() {
+        return NaiveSequencer.class.getSimpleName();
+    }
 }

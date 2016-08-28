@@ -40,7 +40,8 @@ interface Sequencer {
             stringBuilder.append(sequencedFragments.get(0).fragment);
             for (int i = 0; i < sequencedFragments.size() - 1; i++) {
                 final int overlap = sequencedFragments.get(i).overlapIndexOfFollowingPrefix;
-                stringBuilder.append(sequencedFragments.get(i + 1).fragment.substring(overlap + 1));
+                final String nextFrag = sequencedFragments.get(i + 1).fragment;
+                stringBuilder.append(nextFrag, overlap + 1, nextFrag.length());
             }
 
             return stringBuilder.toString();

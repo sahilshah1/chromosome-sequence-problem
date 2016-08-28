@@ -19,12 +19,12 @@ import java.util.stream.IntStream;
 public class ParallelSequencer
         implements Sequencer {
 
-    private final int workerCount;
+    private final int numWorkers;
     private final ExecutorService threadPool;
 
-    public ParallelSequencer(final int workerCount) {
-        this.workerCount = workerCount;
-        this.threadPool = Executors.newFixedThreadPool(workerCount);
+    public ParallelSequencer(final int numWorkers) {
+        this.numWorkers = numWorkers;
+        this.threadPool = Executors.newFixedThreadPool(numWorkers);
     }
 
     @Override
@@ -93,13 +93,13 @@ public class ParallelSequencer
                                                  final StringOverlapAlgorithm algorithm,
                                                  final int[][] overlapMatrix,
                                                  final Map<String, SequencedToNext> rawStringToSequenced) {
-        final List<Callable<Void>> tasks = new ArrayList<>(this.workerCount);
+        final List<Callable<Void>> tasks = new ArrayList<>(this.numWorkers);
 
-        for (int i = 0; i < this.workerCount; i++) {
+        for (int i = 0; i < this.numWorkers; i++) {
             //divide the work up by allocating rows per thread
-            final int startRowInclusive = fragments.size() / this.workerCount * i;
-            final int endRowExclusive = i == this.workerCount - 1 ?
-                    fragments.size() : fragments.size() / this.workerCount * (i + 1);
+            final int startRowInclusive = fragments.size() / this.numWorkers * i;
+            final int endRowExclusive = i == this.numWorkers - 1 ?
+                    fragments.size() : fragments.size() / this.numWorkers * (i + 1);
 
             tasks.add(() -> {
                 for (int row = startRowInclusive; row < endRowExclusive; row++) {
@@ -154,5 +154,10 @@ public class ParallelSequencer
         public String toString() {
             return this.sequencedFragment.toString() + ", next=" + this.nextFragment;
         }
+    }
+
+    @Override
+    public String toString() {
+        return ParallelSequencer.class.getSimpleName() + " (numThreads=" + this.numWorkers + ")";
     }
 }
