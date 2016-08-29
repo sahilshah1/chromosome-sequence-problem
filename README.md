@@ -15,11 +15,11 @@ some suffix of `x` (longer than `len(x) / 2`) is equal to some prefix of `y`
 (longer than `len(y) / 2`). This is true for all `x`, except for the very
 end of the sequence.
 
-In example, here are the unique overlaps in an unordered fragments:
- fragments = [ATTAGACCTG, CCTGCCGGAA, AGACCTGCCG, GCCGGAATAC]
- ATT*AGACCTG AGACCTG*CCG
- AGA*CCTGCCG CCTGCCG*GAA
- CCT*GCCGGAA GCCGGAA*TAC
+In example, here are the unique overlaps given a list of unordered fragments:
+fragments = [ATTAGACCTG, CCTGCCGGAA, AGACCTGCCG, GCCGGAATAC]  
+ATT**AGACCTG AGACCTG**CCG   
+AGA**CCTGCCG CCTGCCG**GAA   
+CCT**GCCGGAA GCCGGAA**TAC   
 
 ```
 //n == number of fragments  
