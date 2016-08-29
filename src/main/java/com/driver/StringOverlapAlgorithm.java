@@ -19,7 +19,7 @@ interface StringOverlapAlgorithm {
 
     /**
      * Naive algorithm that slides the suffix string across the beginning of the prefix
-     * String, and does backtracking for every character. O(mn)
+     * String, and does backtracking for every character. O(m^2)
      */
     class NaiveOverlapAlgorithm
         implements StringOverlapAlgorithm {
@@ -29,7 +29,7 @@ interface StringOverlapAlgorithm {
             final int smallerStringLength = Math.min(suffixString.length(), prefixString.length());
             int overlapIndex = -1;
             for (int i = 0; i < smallerStringLength; i++) {
-                if (prefixString.substring(0, i + 1).equals(suffixString.substring(suffixString.length() - 1 - i, suffixString.length()))) {
+                if (prefixString.regionMatches(0, suffixString, suffixString.length() - 1 - i, i + 1)) {
                     overlapIndex = Math.max(overlapIndex, i);
                 }
             }
@@ -46,7 +46,7 @@ interface StringOverlapAlgorithm {
     }
 
     /**
-     * Uses Knuth-Morris-Pratt to detect the string overlap. O(m + n)
+     * Uses Knuth-Morris-Pratt to detect the string overlap. O(m)
      */
     class KMPAlgorithm
             implements StringOverlapAlgorithm {

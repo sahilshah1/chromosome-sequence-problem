@@ -16,7 +16,7 @@ some suffix of `x` (longer than `len(x) / 2`) is equal to some prefix of `y`
 end of the sequence.
 
 In example, here are the unique overlaps given a list of unordered fragments:
-fragments = [ATTAGACCTG, CCTGCCGGAA, AGACCTGCCG, GCCGGAATAC]  
+fragments = [ATTAGACCTG, CCTGCCGGAA, AGACCTGCCG, GCCGGAATAC]
 ATT**AGACCTG AGACCTG**CCG   
 AGA**CCTGCCG CCTGCCG**GAA   
 CCT**GCCGGAA GCCGGAA**TAC   
@@ -85,13 +85,11 @@ equivalent in length in this problem).
 
 - `Sequencer.java`: this interface takes a `List<String>` of unsequenced FASTA fragments
 and returns the sequenced and combined fragment. There is only a naive `O(n^2)` implementation,
-for the reasons described above.
-
-The ParallelSequencer divides the work up, causing a big improvement on performance.
-As data sets get bigger or smaller, the number of threads should be throttled accordingly,
-but I've used fixed thread numbers for now.
+for the reasons described above. The ParallelSequencer divides the work up, resulting in a big
+improvement on performance. In an ideal solution, as data sets get bigger or smaller, the number of
+threads should be throttled accordingly, but I've used fixed thread numbers for now.
 
 Unit and integration tests can be run to verify correctness and eyeball performance.
 
-There are some obvious places to improve performance on the machine, but out of interest of time, I
+There are some semi-obvious places to improve performance, but out of interest of time, I
 haven't explored many of them. The ones I have are commented in the code.

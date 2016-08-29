@@ -15,36 +15,4 @@ interface Sequencer {
      */
     String sequence(List<String> fragments, final StringOverlapAlgorithm algorithm);
 
-    /**
-     * POJO that describes how much of the companion prefix string (not included in POJO)
-     * overlaps with the fragment.
-     */
-    class SequencedFragment {
-        final String fragment;
-        final int overlapIndexOfFollowingPrefix;
-
-        SequencedFragment(final String fragment, final int overlapIndexOfFollowingPrefix) {
-            this.fragment = fragment;
-            this.overlapIndexOfFollowingPrefix = overlapIndexOfFollowingPrefix;
-        }
-
-        @Override
-        public String toString() {
-            return this.fragment + "(" + this.overlapIndexOfFollowingPrefix + ")";
-        }
-
-
-        static String combineSequencedFragments(final List<SequencedFragment> sequencedFragments) {
-            final StringBuilder stringBuilder = new StringBuilder();
-
-            stringBuilder.append(sequencedFragments.get(0).fragment);
-            for (int i = 0; i < sequencedFragments.size() - 1; i++) {
-                final int overlap = sequencedFragments.get(i).overlapIndexOfFollowingPrefix;
-                final String nextFrag = sequencedFragments.get(i + 1).fragment;
-                stringBuilder.append(nextFrag, overlap + 1, nextFrag.length());
-            }
-
-            return stringBuilder.toString();
-        }
-    }
 }

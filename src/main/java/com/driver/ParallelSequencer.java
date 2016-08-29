@@ -11,8 +11,9 @@ import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 /**
- * Clean, parallel implementation of the {@link NaiveSequencer}. O(n^2 * time of overlap algorithm),
- * but with work split up by threads.
+ * Naive sequencer that figures out the unique overlap between each fragment
+ * by trying each fragment against every other fragment. O(n^2 * time of overlap algorithm)
+ * The computation to calculate overlaps can be divided by n number of threads.
  *
  * Created by sahil on 8/28/16.
  */
@@ -31,7 +32,7 @@ public class ParallelSequencer
     public String sequence(final List<String> fragments, final StringOverlapAlgorithm algorithm) {
 
         final int[][] overlapMatrix = new int[fragments.size()][fragments.size()];
-        final Map<String, SequencedToNext> rawStringToSequenced = new ConcurrentHashMap<>();
+        final Map<String, SequencedFragment> rawStringToSequenced = new ConcurrentHashMap<>();
 
         fillOverlapMatrixAndSequenceMap(fragments, algorithm, overlapMatrix, rawStringToSequenced);
 
@@ -52,11 +53,11 @@ public class ParallelSequencer
         //follow the rawStringToSequenced map to assemble the sequencedFragment
         final List<SequencedFragment> sequencedFragments = new ArrayList<>(fragments.size());
         while (sequencedFragments.size() < fragments.size() - 1) {
-            final SequencedToNext sequencedToNext = rawStringToSequenced.get(currentSequence);
-            sequencedFragments.add(sequencedToNext.sequencedFragment);
-            currentSequence = sequencedToNext.nextFragment;
+            final SequencedFragment sequencedFragment = rawStringToSequenced.get(currentSequence);
+            sequencedFragments.add(sequencedFragment);
+            currentSequence = sequencedFragment.nextFragment;
         }
-        sequencedFragments.add(new SequencedFragment(currentSequence, -1));
+        sequencedFragments.add(new SequencedFragment(currentSequence, -1, ""));
 
         return SequencedFragment.combineSequencedFragments(sequencedFragments);
     }
@@ -85,14 +86,13 @@ public class ParallelSequencer
      * @param algorithm string overlap algorithm
      * @param overlapMatrix -1 per index if there is no valid overlap, otherwise a number indicating
      *                      what the overlap is
-     * @param rawStringToSequenced maps each raw string to a {@link SequencedToNext} to enable lookup by
-     *                             raw String, since the next immutable {@link SequencedFragment} is not known when
-     *                             computing the current immutable {@link SequencedFragment}
+     * @param rawStringToSequenced maps each raw string to a {@link SequencedFragment} to enable lookup by
+     *                             raw String
      */
     private void fillOverlapMatrixAndSequenceMap(final List<String> fragments,
                                                  final StringOverlapAlgorithm algorithm,
                                                  final int[][] overlapMatrix,
-                                                 final Map<String, SequencedToNext> rawStringToSequenced) {
+                                                 final Map<String, SequencedFragment> rawStringToSequenced) {
         final List<Callable<Void>> tasks = new ArrayList<>(this.numWorkers);
 
         for (int i = 0; i < this.numWorkers; i++) {
@@ -117,10 +117,8 @@ public class ParallelSequencer
                         //if overlap exists, it means the unique pairing between suffix and prefix
                         //is found. add to map
                         if (overlapMatrix[row][col] > 0) {
-                            final SequencedToNext sequencedToNext = new SequencedToNext(
-                                    new SequencedFragment(suffixString, overlapMatrix[row][col]),
-                                    prefixString);
-                            rawStringToSequenced.put(suffixString, sequencedToNext);
+                            rawStringToSequenced.put(suffixString,
+                                    new SequencedFragment(suffixString, overlapMatrix[row][col], prefixString));
                         }
                     }
                 }
@@ -137,27 +135,43 @@ public class ParallelSequencer
         }
     }
 
+    @Override
+    public String toString() {
+        return ParallelSequencer.class.getSimpleName() + " (numThreads=" + this.numWorkers + ")";
+    }
+
     /**
-     * Simple POJO that referenced {@link SequencedFragment}s and the String that
-     * is supposed to come after the sequence.
+     * POJO that describes how much of the companion prefix string
+     * overlaps with the fragment.
      */
-    private static class SequencedToNext {
-        final SequencedFragment sequencedFragment;
+    public static class SequencedFragment {
+        final String fragment;
+        final int overlapIndexOfFollowingPrefix;
         final String nextFragment;
 
-        SequencedToNext(final SequencedFragment sequencedFragment, final String nextFragment) {
-            this.sequencedFragment = sequencedFragment;
+        SequencedFragment(final String fragment, final int overlapIndexOfFollowingPrefix, final String nextFragment) {
+            this.fragment = fragment;
+            this.overlapIndexOfFollowingPrefix = overlapIndexOfFollowingPrefix;
             this.nextFragment = nextFragment;
         }
 
         @Override
         public String toString() {
-            return this.sequencedFragment.toString() + ", next=" + this.nextFragment;
+            return this.fragment + "(" + this.overlapIndexOfFollowingPrefix + ")" + this.nextFragment;
         }
-    }
 
-    @Override
-    public String toString() {
-        return ParallelSequencer.class.getSimpleName() + " (numThreads=" + this.numWorkers + ")";
+
+        static String combineSequencedFragments(final List<SequencedFragment> sequencedFragments) {
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            stringBuilder.append(sequencedFragments.get(0).fragment);
+            for (int i = 0; i < sequencedFragments.size() - 1; i++) {
+                final int overlap = sequencedFragments.get(i).overlapIndexOfFollowingPrefix;
+                final String nextFrag = sequencedFragments.get(i + 1).fragment;
+                stringBuilder.append(nextFrag, overlap + 1, nextFrag.length());
+            }
+
+            return stringBuilder.toString();
+        }
     }
 }

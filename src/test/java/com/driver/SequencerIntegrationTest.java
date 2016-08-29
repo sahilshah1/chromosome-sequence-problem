@@ -23,8 +23,8 @@ public class SequencerIntegrationTest {
     @Parameterized.Parameters(name = "{0} with {1}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                    { new NaiveSequencer(), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
-                    { new NaiveSequencer(), new StringOverlapAlgorithm.KMPAlgorithm() },
+                    { new ParallelSequencer(1), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
+                    { new ParallelSequencer(1), new StringOverlapAlgorithm.KMPAlgorithm() },
                     { new ParallelSequencer(2), new StringOverlapAlgorithm.NaiveOverlapAlgorithm() },
                     { new ParallelSequencer(2), new StringOverlapAlgorithm.KMPAlgorithm() },
                     { new ParallelSequencer(4), new StringOverlapAlgorithm.KMPAlgorithm() }
