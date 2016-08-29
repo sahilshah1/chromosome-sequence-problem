@@ -92,3 +92,40 @@ Unit and integration tests can be run to verify correctness and eyeball performa
 
 There are some semi-obvious places to improve performance, but out of interest of time, I
 haven't explored many of them. The ones I have are commented in the code.
+
+## Alternative O(nm) solution
+
+I had already finished the existing implementation and submitted it before I thought of this solution, but it is asymptotically O(nm), with a space cost of O(nm). It uses a trie to figure out the overlap, here is the pseudocode
+
+```
+suffixTrie = new Trie()
+//add each letter of each fragment to trie, starting from the last character in the String and ending at the first
+for String f in fragments:
+    TrieNode node = suffixTrie.root
+    for (int i = f.length; i >=; i--):
+        TrieNode n = node.getOrElsePut(f.charAt(i), new TrieNode(f.charAt(i))
+        node = n
+
+
+//for each fragment, search up it's suffix in the trie and add it to the map of suffix to prefix
+//save the beginning string (no suffix) in a variable. O(nm)
+beginningString = ""
+Map<String, String> suffixToPrefix = new HashpMap()
+for String f in fragments:
+    String s = suffixTrie.findStringWithValidOverlap(f)
+    if s == null:
+        beginningString = s
+    else:
+        suffixToPrefix.put(s, f)
+    
+
+//follow the strings through the map to put fragments in the correct order. O(n)
+String current = beginningString
+List<String> sequencedFragments = new ArrayList()
+while (sequendFragments.size <= fragments.size()):
+    String next = suffixToPrefix.get(current)
+    sequencedFragments.add(current, next)
+    current = next
+    
+return combineStringsAccordingToOverlaps(sequencedFragments)
+```
