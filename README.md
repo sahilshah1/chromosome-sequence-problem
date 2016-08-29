@@ -9,22 +9,24 @@ See the original [problem spec](problem_spec.md) for details.
 
 ## Approach
 
-The basic idea of the approach is this:
-
-Because of the unique overlapping property, for every string
-`x` in this list, there must also exist 1 other string `y` such that
+We are guaranteed this: for every string
+`x` in the list of fragments, there exists 1 other string `y` such that
 some suffix of `x` (longer than `len(x) / 2`) is equal to some prefix of `y`
-(longer than `len(y) / 2`), except for the very last fragment of
-the sequence. So here is the pseudocode approach.
+(longer than `len(y) / 2`). This is true for all `x`, except for the very
+end of the sequence.
 
-`n` == number of fragments
- `m` == length of each fragment
+In example, here are the unique overlaps in an unordered fragments:
+ fragments = [ATTAGACCTG, CCTGCCGGAA, AGACCTGCCG, GCCGGAATAC]
+ ATT*AGACCTG AGACCTG*CCG
+ AGA*CCTGCCG CCTGCCG*GAA
+ CCT*GCCGGAA GCCGGAA*TAC
 
 ```
+//n == number of fragments  
+//m == length of each fragment
 List<String> fragments = readFromFastaFile()
 
-find the beginning of the sequence (O(n^2 * time to match each string))
-
+//find the beginning of the sequence (O(n^2 * time to match each string))
 beginningString = ""
 for (String s : fragments) {
 
