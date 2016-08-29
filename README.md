@@ -35,15 +35,14 @@ for (String s : fragments) {
         if (j has valid suffix for s) {
             isBeginning = false
         }
-        if (isBeginning = true) {
+        if (isBeginning == true) {
             beginningString = s
         }
     }
 }
 
-currentString = isBeginning
+currentString = beginningString
 List<String> sequenced;
-
 repeat until all n fragments have been added to sequence:(O(n^2 * time to match each string))
     for (String s : fragments) {
         if (s has valid prefix for currentString)
